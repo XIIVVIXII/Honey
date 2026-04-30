@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <title>Honey's Tracker 🍯</title>
+    
     <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Honey">
 
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
@@ -121,7 +121,7 @@
 <div class="container">
     <header ondblclick="toggleDeleteBtn()">
         <h1>🧸 Honey</h1>
-        <p> </p>
+        <p>บันทึกการเดินทางของแฟน</p>
     </header>
 
     <div id="home-page" class="page active">
@@ -158,19 +158,23 @@
 </div>
 
 <script>
-    let schedules = JSON.parse(localStorage.getItem('honey_v11_home')) || [];
-    let archiveData = JSON.parse(localStorage.getItem('honey_v11_archive')) || [];
+    let schedules = JSON.parse(localStorage.getItem('honey_v12_home')) || [];
+    let archiveData = JSON.parse(localStorage.getItem('honey_v12_archive')) || [];
     let showArchiveDelete = false;
 
     window.onload = () => {
+        updateDateToToday();
+        renderData();
+    };
+
+    function updateDateToToday() {
         const today = new Date();
         const year = today.getFullYear();
         const month = String(today.getMonth() + 1).padStart(2, '0');
         const day = String(today.getDate()).padStart(2, '0');
         document.getElementById('dateInput').value = `${year}-${month}-${day}`;
         document.getElementById('timeInput').value = "07:00"; 
-        renderData();
-    };
+    }
 
     function switchPage(page) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -182,6 +186,7 @@
     function toggleModal() {
         const m = document.getElementById('modal');
         m.style.display = (m.style.display === 'flex') ? 'none' : 'flex';
+        if(m.style.display === 'flex') updateDateToToday();
     }
 
     function toggleDeleteBtn() {
@@ -207,8 +212,8 @@
         schedules.push(newItem);
         archiveData.push({...newItem}); 
 
-        localStorage.setItem('honey_v11_home', JSON.stringify(schedules));
-        localStorage.setItem('honey_v11_archive', JSON.stringify(archiveData));
+        localStorage.setItem('honey_v12_home', JSON.stringify(schedules));
+        localStorage.setItem('honey_v12_archive', JSON.stringify(archiveData));
         
         toggleModal();
         renderData();
@@ -222,14 +227,14 @@
         const statusCycle = ["📅 มีนัด", "🚗 กำลังไป", "📍 ถึงแล้ว", "✅ เสร็จแล้ว"];
         let curr = statusCycle.indexOf(schedules[idx].status);
         schedules[idx].status = statusCycle[(curr + 1) % statusCycle.length];
-        localStorage.setItem('honey_v11_home', JSON.stringify(schedules));
+        localStorage.setItem('honey_v12_home', JSON.stringify(schedules));
         renderData();
     }
 
     function deleteHome(id) {
         if(confirm('ย้ายออกจากหน้าแรก?')) {
             schedules = schedules.filter(s => s.id !== id);
-            localStorage.setItem('honey_v11_home', JSON.stringify(schedules));
+            localStorage.setItem('honey_v12_home', JSON.stringify(schedules));
             renderData();
         }
     }
@@ -237,7 +242,7 @@
     function deleteArchive(id) {
         if(confirm('ลบจากประวัติถาวรเลยนะ?')) {
             archiveData = archiveData.filter(s => s.id !== id);
-            localStorage.setItem('honey_v11_archive', JSON.stringify(archiveData));
+            localStorage.setItem('honey_v12_archive', JSON.stringify(archiveData));
             renderData();
         }
     }
@@ -271,3 +276,4 @@
 </script>
 </body>
 </html>
+
