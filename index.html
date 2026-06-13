@@ -2,278 +2,604 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Honey's Tracker 🍯</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arcadia Wizarding University - Persistent Management System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
     
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="Honey">
-
-    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --sky-teal: #8EC5FC;
-            --warm-peach: #FEC5E5;
-            --bg-gradient: linear-gradient(135deg, #8EC5FC 0%, #E0C3FC 100%);
-            --text-dark: #4A5568;
-            --glass-white: rgba(255, 255, 255, 0.8);
+            --bg-main: #06040a;
+            --bg-card: #0e0a1a;
+            --bg-input: #151026;
+            --purple-glow: #8e4ce6;
+            --purple-muted: #331e54;
+            --accent-gold: #c5a85c;
+            --text-main: #e2def2;
+            --text-muted: #7f7999;
+            --border-thin: #1f1736;
+            --danger: #ff4a6b;
+            --blue-glow: #29b6f6;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Prompt', sans-serif; 
+        }
 
         body {
-            font-family: 'Prompt', sans-serif;
-            background: var(--bg-gradient);
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            padding: 15px;
+            background-image: radial-gradient(circle at 50% 0%, #150b2b, var(--bg-main) 75%);
             background-attachment: fixed;
-            min-height: 100vh;
-            color: var(--text-dark);
-            padding-bottom: 120px;
+            -webkit-font-smoothing: antialiased;
         }
 
-        .container { width: 100%; max-width: 400px; margin: 20px auto; padding: 0 20px; }
+        .container { max-width: 1100px; margin: 0 auto; }
 
-        header { text-align: center; margin-bottom: 25px; cursor: pointer; user-select: none; }
-        header h1 { color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.1); font-size: 2.2rem; }
-        header p { color: #fff; font-weight: 300; opacity: 0.9; font-size: 0.9rem; }
+        header { text-align: center; margin: 20px 0 30px 0; }
+        header h1 { color: var(--text-main); font-size: 22px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; }
+        header span { color: var(--accent-gold); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; display: block; margin-top: 5px; }
 
-        nav {
-            position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
-            width: 90%; max-width: 350px; height: 70px;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(15px); border-radius: 35px;
-            display: flex; justify-content: space-around; align-items: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1); z-index: 100;
+        /* 🎛️ Navigation Tabs */
+        .nav-bar { display: flex; gap: 8px; margin-bottom: 25px; justify-content: center; flex-wrap: wrap; }
+        .nav-btn {
+            flex: 1; min-width: 120px; max-width: 200px; padding: 12px 10px; background-color: transparent;
+            border: 1px solid var(--border-thin); color: var(--text-muted); font-size: 13px;
+            cursor: pointer; border-radius: 6px; transition: all 0.25s ease; text-align: center;
+        }
+        .nav-btn:hover { color: var(--text-main); border-color: rgba(142, 76, 230, 0.4); }
+        .nav-btn.active {
+            background-color: rgba(142, 76, 230, 0.08); color: #fff; border-color: var(--purple-glow);
+            box-shadow: 0 0 12px rgba(142, 76, 230, 0.2);
         }
 
-        nav button {
-            background: none; border: none; font-family: 'Prompt';
-            color: #A0AEC0; cursor: pointer; display: flex;
-            flex-direction: column; align-items: center; font-size: 0.75rem;
-        }
+        .tab-content { display: none; animation: fadeIn 0.3s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
-        nav button.active { color: var(--sky-teal); font-weight: 600; }
-        nav button span { font-size: 1.5rem; margin-bottom: 2px; }
+        .panel { background-color: var(--bg-card); border: 1px solid var(--border-thin); border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+        .panel-title { font-size: 15px; font-weight: 500; color: var(--accent-gold); margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border-thin); }
 
-        .page { display: none; }
-        .page.active { display: block; animation: fadeIn 0.4s ease; }
+        /* 📊 ตารางแสดงผล */
+        .data-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+        .data-table th, .data-table td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--border-thin); }
+        .data-table th { background-color: transparent; color: var(--text-muted); font-weight: 400; font-size: 12px; text-transform: uppercase; }
+        .data-table tr:last-child td { border-bottom: none; }
+        .data-table tr:hover { background-color: rgba(255, 255, 255, 0.01); }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        .glass {
-            background: var(--glass-white);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            border-radius: 28px;
-            padding: 22px;
-            margin-bottom: 20px;
+        /* 🔮 Dropdown คัดกรองประเภท */
+        .filter-dropdown-wrapper {
             position: relative;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
-        }
-
-        .delete-btn {
-            position: absolute; top: 15px; right: 15px;
-            background: var(--warm-peach); color: white;
-            border: none; width: 30px; height: 30px;
-            border-radius: 50%; cursor: pointer; font-weight: bold;
-            display: flex; justify-content: center; align-items: center;
-        }
-
-        .card h3 { font-size: 1.3rem; margin-bottom: 5px; }
-        .place-text { font-weight: 300; font-size: 0.9rem; color: #718096; margin-bottom: 15px; }
-        .date-info { font-size: 0.85rem; color: var(--sky-teal); margin-bottom: 8px; font-weight: 400; }
-
-        .status-tag {
+            margin-bottom: 22px;
             display: inline-block;
-            background: var(--warm-peach);
-            color: #4A5568; 
-            padding: 8px 18px;
-            border-radius: 12px;
-            font-size: 0.85rem;
-            font-weight: 600; 
-            border: 1px solid rgba(255, 255, 255, 0.5);
-        }
-        .status-tag.clickable { cursor: pointer; }
-
-        #modal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.25); z-index: 1000;
-            justify-content: center; align-items: center; padding: 20px;
-            backdrop-filter: blur(8px);
+            width: 100%;
+            max-width: 320px;
         }
 
-        .modal-content { width: 100%; max-width: 350px; }
-        input, select { width: 100%; padding: 15px; margin: 8px 0; border-radius: 18px; border: 1px solid #E2E8F0; font-family: 'Prompt'; outline: none; background: #fff; font-size: 1rem; }
-        .save-btn { width: 100%; padding: 16px; background: var(--warm-peach); color: #4A5568; border: none; border-radius: 18px; font-weight: 600; margin-top: 15px; cursor: pointer; }
+        .dropdown-trigger-btn {
+            width: 100%; padding: 11px 16px; background-color: var(--bg-input); border: 1px solid var(--border-thin);
+            color: var(--text-main); border-radius: 8px; font-size: 13px; cursor: pointer;
+            text-align: left; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s ease;
+        }
 
-        .add-fab {
-            position: fixed; bottom: 110px; right: 25px;
-            width: 65px; height: 65px; border-radius: 50%;
-            background: var(--warm-peach); color: #4A5568;
-            border: none; font-size: 32px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15); z-index: 99; cursor: pointer;
-            display: flex; justify-content: center; align-items: center;
+        .dropdown-trigger-btn:hover, .dropdown-trigger-btn.active {
+            border-color: var(--purple-glow); box-shadow: 0 0 10px rgba(142, 76, 230, 0.15);
+        }
+
+        .dropdown-arrow-icon { font-size: 10px; color: var(--accent-gold); transition: transform 0.25s ease; }
+        .dropdown-trigger-btn.active .dropdown-arrow-icon { transform: rotate(180deg); }
+
+        .dropdown-menu-list {
+            position: absolute; top: calc(100% + 6px); left: 0; right: 0; background-color: var(--bg-card);
+            border: 1px solid var(--purple-glow); border-radius: 8px; list-style: none; overflow: hidden; z-index: 99;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.8); max-height: 0; opacity: 0; pointer-events: none;
+            transition: max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+        }
+
+        .dropdown-menu-list.open { max-height: 350px; opacity: 1; pointer-events: auto; }
+        .dropdown-option-item { width: 100%; padding: 11px 16px; background: transparent; border: none; color: var(--text-muted); text-align: left; font-size: 13px; cursor: pointer; transition: all 0.15s ease; }
+        .dropdown-option-item:hover { background-color: rgba(142, 76, 230, 0.08); color: #fff; }
+        .dropdown-option-item.selected { color: var(--accent-gold); background-color: rgba(195, 164, 76, 0.05); font-weight: 500; }
+
+        /* 🖥️ Layout แผงควบคุมระบบหลังบ้าน */
+        .admin-layout-wrapper { display: flex; flex-direction: column; gap: 20px; }
+        .admin-row-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        @media (min-width: 850px) { .admin-row-grid { grid-template-columns: 1.8fr 1.2fr; } }
+        
+        .admin-section { margin-bottom: 5px; padding: 18px; border: 1px solid var(--border-thin); border-radius: 8px; background: rgba(0,0,0,0.1); }
+        .admin-section h3 { font-size: 14px; font-weight: 500; margin-bottom: 15px; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
+
+        .form-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 15px; }
+        .form-group { flex: 1; min-width: 120px; display: flex; flex-direction: column; gap: 6px; }
+        label { font-size: 11.5px; color: var(--text-muted); }
+        
+        input, select { padding: 10px 12px; background: var(--bg-input); border: 1px solid var(--border-thin); border-radius: 6px; color: #fff; font-size: 13px; width: 100%; }
+        input:focus, select:focus { border-color: var(--purple-glow); outline: none; }
+
+        .btn { padding: 10px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 13px; transition: 0.2s; white-space: nowrap; }
+        .btn-add { background: var(--purple-muted); border: 1px solid var(--purple-glow); color: #fff; }
+        .btn-add:hover { background: var(--purple-glow); }
+        .btn-del { background: transparent; color: var(--text-muted); border: 1px solid var(--border-thin); padding: 4px 10px; font-size: 11px; border-radius: 4px; }
+        .btn-del:hover { border-color: var(--danger); color: var(--danger); background: rgba(255, 74, 107, 0.05); }
+
+        /* Badges & Tags */
+        .day-badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 11px; text-align: center; color: #fff; width: 75px; font-weight: 500; }
+        .day-จันทร์ { background: #c2952b; color: #000; }
+        .day-อังคาร { background: #b83f73; }
+        .day-พุธ { background: #1c8c3e; }
+        .day-พฤหัสบดี { background: #bd5d11; }
+        .day-ศุกร์ { background: #1a87b8; color: #000; }
+        .day-เสาร์ { background: #6830b0; }
+        .day-อาทิตย์ { background: #b03225; }
+
+        .cat-badge { background: rgba(142, 76, 230, 0.08); color: var(--accent-gold); padding: 3px 8px; border-radius: 4px; font-size: 11px; border: 1px solid rgba(195, 164, 76, 0.15); }
+        .emote-badge { background: rgba(41, 182, 246, 0.08); color: var(--blue-glow); padding: 3px 8px; border-radius: 4px; font-size: 11px; border: 1px solid rgba(41, 182, 246, 0.2); }
+
+        @media (max-width: 600px) {
+            body { padding: 10px; }
+            .panel { padding: 15px; }
+            .form-row { flex-direction: column; align-items: stretch; }
+            .form-group { width: 100%; }
+            .btn { width: 100%; text-align: center; margin-top: 5px; }
+            .data-table th, .data-table td { padding: 10px 8px; font-size: 12.5px; }
+            .day-badge { width: 65px; font-size: 10px; }
+            .filter-dropdown-wrapper { max-width: 100%; }
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <header ondblclick="toggleDeleteBtn()">
-        <h1>🧸 Honey</h1>
-        <p> </p>
+    <header>
+        <h1>Arcadia Wizarding University</h1>
+        <span>System Portal Dashboard</span>
     </header>
 
-    <div id="home-page" class="page active">
-        <div id="today-list"></div>
+    <div class="nav-bar">
+        <button class="nav-btn active" id="tab-page-1" onclick="showTab('page-1')">📅 ตารางเรียน</button>
+        <button class="nav-btn" id="tab-page-2" onclick="showTab('page-2')">👗 คลังไอเทมชุด</button>
+        <button class="nav-btn" id="tab-page-4" onclick="showTab('page-4')">🎭 คลังท่าทาง</button>
+        <button class="nav-btn" id="tab-page-3" onclick="showTab('page-3')" style="border-color: rgba(197, 168, 92, 0.3);">⚙️ หลังบ้าน</button>
     </div>
 
-    <div id="archive-page" class="page">
-        <div id="archive-list"></div>
+    <div id="page-1" class="tab-content active">
+        <div class="panel">
+            <div class="panel-title">📅 ตารางการเรียนการสอน (คลาสเวลา 20:00 - 21:00 น.)</div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width: 20%;">วันเรียน</th>
+                        <th style="width: 25%;">เวลาประจำ</th>
+                        <th style="width: 55%;">วิชาที่เปิดสอน / กิจกรรม</th>
+                    </tr>
+                </thead>
+                <tbody id="view-schedule-body"></tbody>
+            </table>
+        </div>
     </div>
-</div>
 
-<nav>
-    <button onclick="switchPage('home')" id="nav-home" class="active"><span>🏠</span>หน้าแรก</button>
-    <button onclick="switchPage('archive')" id="nav-archive"><span>📜</span>บันทึก</button>
-</nav>
+    <div id="page-2" class="tab-content">
+        <div class="panel">
+            <div class="panel-title">👗 คลังรวมรหัสชุดและไอเทมแฟชั่นตัวละคร</div>
+            
+            <div class="filter-dropdown-wrapper">
+                <button class="dropdown-trigger-btn" id="outfit-dropdown-trigger" onclick="toggleDropdown('outfit-dropdown-menu', 'outfit-dropdown-trigger')">
+                    <span id="selected-outfit-label">✨ เลือกหมวดหมู่: ทั้งหมด</span>
+                    <span class="dropdown-arrow-icon">▼</span>
+                </button>
+                <div class="dropdown-menu-list" id="outfit-dropdown-menu"></div>
+            </div>
 
-<button class="add-fab" onclick="toggleModal()">+</button>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width: 15%;">เลขชุด</th>
+                        <th style="width: 25%;">หมวดหมู่</th>
+                        <th style="width: 60%;">รายละเอียดเครื่องแต่งกาย</th>
+                    </tr>
+                </thead>
+                <tbody id="view-outfit-body"></tbody>
+            </table>
+        </div>
+    </div>
 
-<div id="modal" onclick="if(event.target == this) toggleModal()">
-    <div class="modal-content glass">
-        <h3 style="text-align:center; color:var(--sky-teal); margin-bottom:10px;">📍 เพิ่มนัดหมาย</h3>
-        <input type="date" id="dateInput">
-        <input type="time" id="timeInput">
-        <input type="text" id="workInput" placeholder="แฟนทำอะไร?">
-        <input type="text" id="placeInput" placeholder="สถานที่">
-        <select id="statusInput">
-            <option value="📅 มีนัด">📅 มีนัด</option>
-            <option value="🚗 กำลังไป">🚗 กำลังไป</option>
-            <option value="📍 ถึงแล้ว">📍 ถึงแล้ว</option>
-            <option value="✅ เสร็จแล้ว">✅ เสร็จแล้ว</option>
-        </select>
-        <button class="save-btn" onclick="saveData()">บันทึกข้อมูล</button>
+    <div id="page-4" class="tab-content">
+        <div class="panel">
+            <div class="panel-title">🎭 คลังข้อมูลท่าทางและแอนิเมชันตัวละคร (Emotes)</div>
+            
+            <div class="filter-dropdown-wrapper">
+                <button class="dropdown-trigger-btn" id="emote-dropdown-trigger" onclick="toggleDropdown('emote-dropdown-menu', 'emote-dropdown-trigger')">
+                    <span id="selected-emote-label">✨ ประเภทท่าทาง: ทั้งหมด</span>
+                    <span class="dropdown-arrow-icon">▼</span>
+                </button>
+                <div class="dropdown-menu-list" id="emote-dropdown-menu"></div>
+            </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width: 15%;">เลขท่าทาง</th>
+                        <th style="width: 25%;">ประเภท</th>
+                        <th style="width: 60%;">ชื่อสัญลักษณ์ / คำสั่งท่าทาง</th>
+                    </tr>
+                </thead>
+                <tbody id="view-emote-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="page-3" class="tab-content">
+        <div class="panel">
+            <div class="panel-title">⚙️ Control Panel (แผงจัดการเพิ่มและลบข้อมูลระบบ)</div>
+            
+            <div class="admin-layout-wrapper">
+                
+                <div class="admin-row-grid">
+                    <div class="admin-section">
+                        <h3>📅 เพิ่มคลาสเรียนประจำวัน</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>วันประจำสัปดาห์</label>
+                                <select id="in-day">
+                                    <option value="จันทร์">วันจันทร์</option>
+                                    <option value="อังคาร">วันอังคาร</option>
+                                    <option value="พุธ">วันพุธ</option>
+                                    <option value="พฤหัสบดี">วันพฤหัสบดี</option>
+                                    <option value="ศุกร์">วันศุกร์</option>
+                                    <option value="เสาร์">วันเสาร์</option>
+                                    <option value="อาทิตย์">วันอาทิตย์</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="flex: 2;">
+                                <label>ชื่อวิชาเวทมนตร์</label>
+                                <input type="text" id="in-subject" placeholder="ระบุชื่อวิชาความรู้...">
+                            </div>
+                            <button class="btn btn-add" onclick="addSchedule()">บันทึก</button>
+                        </div>
+                        <table class="data-table" style="font-size: 12.5px;"><tbody id="admin-schedule-body"></tbody></table>
+                    </div>
+
+                    <div class="admin-section">
+                        <h3>🛠️ โครงสร้างหมวดเสื้อผ้า</h3>
+                        <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;">
+                            <input type="text" id="in-new-category" placeholder="ระบุชื่อหมวดหมู่เสื้อผ้าใหม่...">
+                            <button class="btn btn-add" onclick="addNewCategory()">➕ เพิ่มหมวดหมู่</button>
+                        </div>
+                        <ul id="admin-category-list" style="list-style: none; display: flex; flex-direction: column; gap: 5px;"></ul>
+                    </div>
+                </div>
+
+                <div class="admin-section">
+                    <h3>👗 เพิ่มคอสตูมแฟชั่นเข้าคลังคลังชุด</h3>
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 0.5; min-width: 70px;">
+                            <label>เลขชุด</label>
+                            <input type="text" id="in-outfit-id" placeholder="01">
+                        </div>
+                        <div class="form-group">
+                            <label>หมวดหมู่คลัง</label>
+                            <select id="in-outfit-cat"></select>
+                        </div>
+                        <div class="form-group" style="flex: 1.5;">
+                            <label>รายละเอียดรูปร่างไอเทม</label>
+                            <input type="text" id="in-outfit-desc" placeholder="เช่น เสื้อคลุมยาวสีดำไหมพรม...">
+                        </div>
+                        <button class="btn btn-add" onclick="addOutfit()">บันทึกชุด</button>
+                    </div>
+                    <table class="data-table" style="font-size: 12.5px;"><tbody id="admin-outfit-body"></tbody></table>
+                </div>
+
+                <div class="admin-section" style="border-color: rgba(41, 182, 246, 0.3);">
+                    <h3 style="color: var(--blue-glow);">🎭 เพิ่มข้อมูลสัญลักษณ์ท่าทาง (Emotes)</h3>
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 0.5; min-width: 70px;">
+                            <label>เลขท่าทาง</label>
+                            <input type="text" id="in-emote-id" placeholder="เช่น 01">
+                        </div>
+                        <div class="form-group">
+                            <label>เลือกประเภทท่าทาง</label>
+                            <select id="in-emote-type">
+                                <option value="Emote">อีโมตทั่วไป (Emote)</option>
+                                <option value="Dance Emote">อีโมตเต้น (Dance Emote)</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex: 1.5;">
+                            <label>ชื่อท่าทาง / คำสั่งเรียกใช้ท่า</label>
+                            <input type="text" id="in-emote-name" placeholder="เช่น /e dance1 , ท่ากอดอก...">
+                        </div>
+                        <button class="btn btn-add" style="background: rgba(41, 182, 246, 0.15); border-color: var(--blue-glow);" onclick="addEmote()">บันทึกท่าทาง</button>
+                    </div>
+                    <table class="data-table" style="font-size: 12.5px;"><tbody id="admin-emote-body"></tbody></table>
+                </div>
+
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
-    let schedules = JSON.parse(localStorage.getItem('honey_v12_home')) || [];
-    let archiveData = JSON.parse(localStorage.getItem('honey_v12_archive')) || [];
-    let showArchiveDelete = false;
+    // --- 🔮 ส่วนของการโหลดและเซฟลงเครื่องอัตโนมัติ (LocalStorage Setup) ---
+    
+    // ชุดข้อมูลตัวอย่างตั้งต้น (จะทำงานก็ต่อเมื่อเปิดเว็บบนเครื่องครั้งแรกสุดและไม่มีข้อมูลเก่าเลย)
+    const defaultCategories = ["ชุดนอก", "ชุดใน", "กางเกง / กระโปรง", "รองเท้า", "สร้อยคอ", "หน้ากาก"];
+    const defaultSchedule = [
+        { day: "จันทร์", subject: "วิชาปรุงยาและสมุนไพรเวทมนตร์" },
+        { day: "อังคาร", subject: "ศาสตร์การบินและการบังคับไม้กวาด" }
+    ];
+    const defaultOutfits = [
+        { id: "01", category: "ชุดนอก", desc: "เสื้อคลุมยาวผ้าไหมรัตติกาลแฝงเวทย์" },
+        { id: "01", category: "กางเกง / กระโปรง", desc: "กางเกงสแล็คขากระบอกเล็กเข้ารูป" }
+    ];
+    const defaultEmotes = [
+        { id: "01", type: "Emote", name: "ท่ากอดอกสุดเท่ (/e crossarms)" },
+        { id: "01", type: "Dance Emote", name: "เต้นสไตล์ Hip-Hop สโลว์เวทย์ (/e dance1)" }
+    ];
 
-    window.onload = () => {
-        updateDateToToday();
-        renderData();
-    };
+    // โหลดข้อมูลเก่าจากความจำคอมพิวเตอร์/มือถือ ถ้าไม่มีให้ใช้ค่าตั้งต้น
+    let categories = JSON.parse(localStorage.getItem('arcadia_categories')) || defaultCategories;
+    let scheduleData = JSON.parse(localStorage.getItem('arcadia_schedule')) || defaultSchedule;
+    let outfitData = JSON.parse(localStorage.getItem('arcadia_outfits')) || defaultOutfits;
+    let emoteData = JSON.parse(localStorage.getItem('arcadia_emotes')) || defaultEmotes;
 
-    function updateDateToToday() {
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = String(today.getMonth() + 1).padStart(2, '0');
-        const day = String(today.getDate()).padStart(2, '0');
-        document.getElementById('dateInput').value = `${year}-${month}-${day}`;
-        document.getElementById('timeInput').value = "07:00"; 
-    }
-
-    function switchPage(page) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-        document.getElementById(page + '-page').classList.add('active');
-        document.getElementById('nav-' + page).classList.add('active');
-    }
-
-    function toggleModal() {
-        const m = document.getElementById('modal');
-        m.style.display = (m.style.display === 'flex') ? 'none' : 'flex';
-        if(m.style.display === 'flex') updateDateToToday();
-    }
-
-    function toggleDeleteBtn() {
-        showArchiveDelete = !showArchiveDelete;
-        renderData();
-    }
-
+    // ฟังก์ชันส่วนกลางสำหรับกด Save ทุกความเคลื่อนไหวลงเครื่องถาวร ลบหรือเพิ่มปุ๊บฟังก์ชันนี้จะทำงานทันที
     function saveData() {
-        const work = document.getElementById('workInput').value;
-        const time = document.getElementById('timeInput').value;
-        const date = document.getElementById('dateInput').value;
-        if(!work || !time) return alert('ใส่ข้อมูลก่อนนะ!');
+        localStorage.setItem('arcadia_categories', JSON.stringify(categories));
+        localStorage.setItem('arcadia_schedule', JSON.stringify(scheduleData));
+        localStorage.setItem('arcadia_outfits', JSON.stringify(outfitData));
+        localStorage.setItem('arcadia_emotes', JSON.stringify(emoteData));
+    }
 
-        const newItem = {
-            id: Date.now(),
-            date: date,
-            time: time,
-            work: work,
-            place: document.getElementById('placeInput').value,
-            status: document.getElementById('statusInput').value
-        };
+    // --- ส่วนตรรกะระบบจัดการ UI ตัวเลือกหน้าเว็บ ---
+    let currentOutfitFilter = "ทั้งหมด";
+    let currentEmoteFilter = "ทั้งหมด";
 
-        schedules.push(newItem);
-        archiveData.push({...newItem}); 
+    function showTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        document.getElementById('tab-' + tabId).classList.add('active');
+        closeAllDropdowns();
+        renderAll();
+    }
 
-        localStorage.setItem('honey_v12_home', JSON.stringify(schedules));
-        localStorage.setItem('honey_v12_archive', JSON.stringify(archiveData));
+    function toggleDropdown(menuId, triggerId) {
+        const menu = document.getElementById(menuId);
+        const trigger = document.getElementById(triggerId);
+        const isOpen = menu.classList.contains('open');
+        closeAllDropdowns();
+        if (!isOpen) {
+            menu.classList.add('open');
+            trigger.classList.add('active');
+        }
+    }
+
+    function closeAllDropdowns() {
+        document.querySelectorAll('.dropdown-menu-list').forEach(m => m.classList.remove('open'));
+        document.querySelectorAll('.dropdown-trigger-btn').forEach(t => t.classList.remove('active'));
+    }
+
+    function selectOutfitOption(catName) {
+        currentOutfitFilter = catName;
+        document.getElementById("selected-outfit-label").innerText = (catName === "ทั้งหมด") ? "✨ เลือกหมวดหมู่: ทั้งหมด" : `🔮 หมวดหมู่: ${catName}`;
+        closeAllDropdowns();
+        renderPage2();
+    }
+
+    function selectEmoteOption(typeName) {
+        currentEmoteFilter = typeName;
+        document.getElementById("selected-emote-label").innerText = (typeName === "ทั้งหมด") ? "✨ ประเภทท่าทาง: ทั้งหมด" : `🎭 ประเภท: ${typeName}`;
+        closeAllDropdowns();
+        renderPage4();
+    }
+
+    // --- ส่วนการเรนเดอร์เนื้อหาหน้าจอหลัก ---
+    function renderPage1() {
+        const body = document.getElementById("view-schedule-body");
+        body.innerHTML = scheduleData.map(item => `
+            <tr>
+                <td><span class="day-badge day-${item.day}">วัน${item.day}</span></td>
+                <td style="color:var(--accent-gold); font-weight:500;">20:00 - 21:00 น.</td>
+                <td>${item.subject}</td>
+            </tr>
+        `).join('');
+    }
+
+    function renderPage2() {
+        const menu = document.getElementById("outfit-dropdown-menu");
+        let menuHTML = `<button class="dropdown-option-item ${currentOutfitFilter === 'ทั้งหมด' ? 'selected' : ''}" onclick="selectOutfitOption('ทั้งหมด')">✨ ดูทั้งหมด</button>`;
+        categories.forEach(cat => {
+            menuHTML += `<button class="dropdown-option-item ${currentOutfitFilter === cat ? 'selected' : ''}" onclick="selectOutfitOption('${cat}')">📂 ${cat}</button>`;
+        });
+        menu.innerHTML = menuHTML;
+
+        const body = document.getElementById("view-outfit-body");
+        const filtered = outfitData.filter(item => currentOutfitFilter === "ทั้งหมด" || item.category === currentOutfitFilter);
         
-        toggleModal();
-        renderData();
-        document.getElementById('workInput').value = '';
-        document.getElementById('placeInput').value = '';
-    }
-
-    function changeStatus(id) {
-        const idx = schedules.findIndex(s => s.id === id);
-        if(idx === -1) return;
-        const statusCycle = ["📅 มีนัด", "🚗 กำลังไป", "📍 ถึงแล้ว", "✅ เสร็จแล้ว"];
-        let curr = statusCycle.indexOf(schedules[idx].status);
-        schedules[idx].status = statusCycle[(curr + 1) % statusCycle.length];
-        localStorage.setItem('honey_v12_home', JSON.stringify(schedules));
-        renderData();
-    }
-
-    function deleteHome(id) {
-        if(confirm('ย้ายออกจากหน้าแรก?')) {
-            schedules = schedules.filter(s => s.id !== id);
-            localStorage.setItem('honey_v12_home', JSON.stringify(schedules));
-            renderData();
+        if(filtered.length === 0) {
+            body.innerHTML = `<tr><td colspan="3" style="text-align:center; color:var(--text-muted); padding:25px;">ไม่มีข้อมูลไอเทมชุดในหมวดหมู่นี้</td></tr>`;
+            return;
         }
+        body.innerHTML = filtered.map(item => `
+            <tr>
+                <td style="color:var(--accent-gold); font-weight:500;">${item.id}</td>
+                <td><span class="cat-badge">${item.category}</span></td>
+                <td>${item.desc}</td>
+            </tr>
+        `).join('');
     }
 
-    function deleteArchive(id) {
-        if(confirm('ลบจากประวัติถาวรเลยนะ?')) {
-            archiveData = archiveData.filter(s => s.id !== id);
-            localStorage.setItem('honey_v12_archive', JSON.stringify(archiveData));
-            renderData();
-        }
-    }
-
-    function renderData() {
-        const hList = document.getElementById('today-list');
-        const aList = document.getElementById('archive-list');
-        hList.innerHTML = ''; aList.innerHTML = '';
-
-        schedules.slice().reverse().forEach(item => hList.innerHTML += createCard(item, true));
-        archiveData.slice().reverse().forEach(item => aList.innerHTML += createCard(item, false));
-    }
-
-    function createCard(item, isHome) {
-        const d = new Date(item.date);
-        const thaiDate = d.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
-        const canDelete = isHome || showArchiveDelete;
-
-        return `
-            <div class="glass card">
-                ${canDelete ? `<button class="delete-btn" onclick="${isHome ? `deleteHome(${item.id})` : `deleteArchive(${item.id})`}">✕</button>` : ''}
-                <div class="date-info">📅 ${thaiDate} | ⏰ ${item.time}</div>
-                <h3>${item.work}</h3>
-                <p class="place-text">📍 ${item.place || 'ไม่ระบุสถานที่'}</p>
-                <div class="status-tag ${isHome ? 'clickable' : ''}" ${isHome ? `onclick="changeStatus(${item.id})"` : ''}>
-                    ${item.status}
-                </div>
-            </div>
+    function renderPage4() {
+        const menu = document.getElementById("emote-dropdown-menu");
+        menu.innerHTML = `
+            <button class="dropdown-option-item ${currentEmoteFilter === 'ทั้งหมด' ? 'selected' : ''}" onclick="selectEmoteOption('ทั้งหมด')">✨ ดูทั้งหมด</button>
+            <button class="dropdown-option-item ${currentEmoteFilter === 'Emote' ? 'selected' : ''}" onclick="selectEmoteOption('Emote')">🎭 อีโมตทั่วไป (Emote)</button>
+            <button class="dropdown-option-item ${currentEmoteFilter === 'Dance Emote' ? 'selected' : ''}" onclick="selectEmoteOption('Dance Emote')">💃 อีโมตเต้น (Dance Emote)</button>
         `;
+
+        const body = document.getElementById("view-emote-body");
+        const filtered = emoteData.filter(item => currentEmoteFilter === "ทั้งหมด" || item.type === currentEmoteFilter);
+        
+        if(filtered.length === 0) {
+            body.innerHTML = `<tr><td colspan="3" style="text-align:center; color:var(--text-muted); padding:25px;">ไม่มีข้อมูลท่าทางในหมวดหมู่นี้</td></tr>`;
+            return;
+        }
+        body.innerHTML = filtered.map(item => `
+            <tr>
+                <td style="color:var(--blue-glow); font-weight:500;">${item.id}</td>
+                <td><span class="emote-badge">${item.type}</span></td>
+                <td>${item.name}</td>
+            </tr>
+        `).join('');
     }
+
+    function renderPage3() {
+        document.getElementById("in-outfit-cat").innerHTML = categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+
+        document.getElementById("admin-schedule-body").innerHTML = scheduleData.map((item, index) => `
+            <tr>
+                <td style="width:20%;">วัน${item.day}</td>
+                <td>${item.subject}</td>
+                <td style="text-align:right; width:15%;"><button class="btn btn-del" onclick="deleteSchedule(${index})">ลบ</button></td>
+            </tr>
+        `).join('');
+
+        document.getElementById("admin-outfit-body").innerHTML = outfitData.map((item, index) => `
+            <tr>
+                <td style="width:15%;"><b>${item.id}</b></td>
+                <td style="width:25%;"><span class="cat-badge" style="font-size:10px;">${item.category}</span></td>
+                <td>${item.desc}</td>
+                <td style="text-align:right; width:15%;"><button class="btn btn-del" onclick="deleteOutfit(${index})">ลบ</button></td>
+            </tr>
+        `).join('');
+
+        document.getElementById("admin-emote-body").innerHTML = emoteData.map((item, index) => `
+            <tr>
+                <td style="width:15%; color:var(--blue-glow);"><b>${item.id}</b></td>
+                <td style="width:25%;"><span class="emote-badge" style="font-size:10px;">${item.type}</span></td>
+                <td>${item.name}</td>
+                <td style="text-align:right; width:15%;"><button class="btn btn-del" onclick="deleteEmote(${index})">ลบ</button></td>
+            </tr>
+        `).join('');
+
+        document.getElementById("admin-category-list").innerHTML = categories.map((cat, index) => `
+            <li style="display:flex; justify-content:space-between; align-items:center; background: rgba(255,255,255,0.02); padding:6px 10px; border-radius:6px; border:1px solid var(--border-thin);">
+                <span style="font-size:12px;">🔮 ${cat}</span>
+                <button class="btn btn-del" style="padding:2px 6px; font-size:10px;" onclick="deleteCategory(${index}, '${cat}')">ลบ</button>
+            </li>
+        `).join('');
+    }
+
+    function renderAll() {
+        renderPage1();
+        renderPage2();
+        renderPage4();
+        renderPage3();
+    }
+
+    // --- ส่วนของระบบบันทึกเพิ่ม / ลบข้อมูล (พร้อมผูกคำสั่ง saveData ค้างไว้ในตัว) ---
+    function addSchedule() {
+        const day = document.getElementById("in-day").value;
+        const subject = document.getElementById("in-subject").value.trim();
+        if(!subject) return alert("กรุณาระบุชื่อวิชาก่อนบันทึก");
+        scheduleData.push({ day, subject });
+        document.getElementById("in-subject").value = "";
+        saveData(); // บันทึกถาวร 💾
+        renderAll();
+    }
+
+    function deleteSchedule(index) {
+        if(confirm("ยืนยันการลบตารางเรียนนี้?")) { 
+            scheduleData.splice(index, 1); 
+            saveData(); // บันทึกถาวร 💾
+            renderAll(); 
+        }
+    }
+
+    function addOutfit() {
+        const id = document.getElementById("in-outfit-id").value.trim();
+        const category = document.getElementById("in-outfit-cat").value;
+        const desc = document.getElementById("in-outfit-desc").value.trim();
+        if(!id || !desc) return alert("กรุณากรอกรหัสเลขและรายละเอียดชุดให้ครบถ้วน");
+        
+        outfitData.push({ id, category, desc });
+        document.getElementById("in-outfit-id").value = "";
+        document.getElementById("in-outfit-desc").value = "";
+        
+        currentOutfitFilter = category;
+        document.getElementById("selected-outfit-label").innerText = `🔮 หมวดหมู่: ${category}`;
+        saveData(); // บันทึกถาวร 💾
+        renderAll();
+    }
+
+    function deleteOutfit(index) {
+        if(confirm("ยืนยันการลบชุดนี้ออกจากระบบคลัง?")) { 
+            outfitData.splice(index, 1); 
+            saveData(); // บันทึกถาวร 💾
+            renderAll(); 
+        }
+    }
+
+    function addEmote() {
+        const id = document.getElementById("in-emote-id").value.trim();
+        const type = document.getElementById("in-emote-type").value;
+        const name = document.getElementById("in-emote-name").value.trim();
+        if(!id || !name) return alert("กรุณากรอกรหัสเลขท่าและคำสั่งเรียกท่าทางให้ครบถ้วนครับ");
+        
+        emoteData.push({ id, type, name });
+        document.getElementById("in-emote-id").value = "";
+        document.getElementById("in-emote-name").value = "";
+        
+        currentEmoteFilter = type;
+        document.getElementById("selected-emote-label").innerText = `🎭 ประเภท: ${type}`;
+        saveData(); // บันทึกถาวร 💾
+        renderAll();
+    }
+
+    function deleteEmote(index) {
+        if(confirm("คุณต้องการลบท่าทางรายการนี้ออกจากระบบใช่หรือไม่?")) {
+            emoteData.splice(index, 1);
+            saveData(); // บันทึกถาวร 💾
+            renderAll();
+        }
+    }
+
+    function addNewCategory() {
+        const newCat = document.getElementById("in-new-category").value.trim();
+        if(!newCat) return alert("กรุณาระบุชื่อหมวดหมู่เสื้อผ้าใหม่");
+        if(categories.includes(newCat)) return alert("มีหมวดหมู่นี้อยู่ในระบบอยู่แล้ว");
+        categories.push(newCat);
+        document.getElementById("in-new-category").value = "";
+        saveData(); // บันทึกถาวร 💾
+        renderAll();
+    }
+
+    function deleteCategory(index, catName) {
+        if(confirm(`หากลบหมวดหมู่ "${catName}" ชุดทั้งหมดภายใต้หมวดนี้จะหายไปด้วย ยืนยันการลบหรือไม่?`)) {
+            categories.splice(index, 1);
+            outfitData = outfitData.filter(item => item.category !== catName);
+            if(currentOutfitFilter === catName) {
+                currentOutfitFilter = "ทั้งหมด";
+                document.getElementById("selected-outfit-label").innerText = "✨ เลือกหมวดหมู่: ทั้งหมด";
+            }
+            saveData(); // บันทึกถาวร 💾
+            renderAll();
+        }
+    }
+
+    // คลิกด้านนอกฟิลเตอร์ให้หุบเมนูดรอปดาวน์ลงมาเอง
+    window.onclick = function(event) {
+        if (!event.target.closest('.filter-dropdown-wrapper')) {
+            closeAllDropdowns();
+        }
+    }
+
+    window.onload = renderAll;
 </script>
+
 </body>
 </html>
-
