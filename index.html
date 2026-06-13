@@ -72,13 +72,25 @@
         .data-table tr:last-child td { border-bottom: none; }
         .data-table tr:hover { background-color: rgba(255, 255, 255, 0.01); }
 
-        /* 🔮 Dropdown คัดกรองประเภท */
+        /* 🔮 Dropdown คัดกรองประเภท และกล่องค้นหา */
+        .search-filter-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 22px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
         .filter-dropdown-wrapper {
             position: relative;
-            margin-bottom: 22px;
             display: inline-block;
             width: 100%;
             max-width: 320px;
+        }
+
+        .search-input-wrapper {
+            flex: 1;
+            min-width: 250px;
         }
 
         .dropdown-trigger-btn {
@@ -107,12 +119,37 @@
         .dropdown-option-item.selected { color: var(--accent-gold); background-color: rgba(195, 164, 76, 0.05); font-weight: 500; }
 
         /* 🖥️ Layout แผงควบคุมระบบหลังบ้าน */
-        .admin-layout-wrapper { display: flex; flex-direction: column; gap: 20px; }
-        .admin-row-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        .admin-layout-wrapper { display: flex; flex-direction: column; gap: 15px; }
+        .admin-row-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
         @media (min-width: 850px) { .admin-row-grid { grid-template-columns: 1.8fr 1.2fr; } }
         
-        .admin-section { margin-bottom: 5px; padding: 18px; border: 1px solid var(--border-thin); border-radius: 8px; background: rgba(0,0,0,0.1); }
-        .admin-section h3 { font-size: 14px; font-weight: 500; margin-bottom: 15px; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
+        /* สไตล์สำหรับหัวข้อซ่อนรูป (Accordion) ในระบบหลังบ้าน */
+        .admin-section { margin-bottom: 5px; border: 1px solid var(--border-thin); border-radius: 8px; background: rgba(0,0,0,0.1); overflow: hidden; transition: all 0.25s ease; }
+        
+        .admin-section-header {
+            padding: 15px 18px;
+            background: rgba(142, 76, 230, 0.03);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.2s;
+        }
+        .admin-section-header:hover {
+            background: rgba(142, 76, 230, 0.08);
+        }
+        .admin-section-header h3 { font-size: 14px; font-weight: 500; color: var(--text-main); display: flex; align-items: center; gap: 6px; margin-bottom: 0; }
+        .admin-section-toggle-icon { font-size: 11px; color: var(--accent-gold); transition: transform 0.25s ease; }
+        
+        .admin-section-content {
+            padding: 18px;
+            border-top: 1px solid var(--border-thin);
+            display: none;
+            background: rgba(0, 0, 0, 0.15);
+        }
+        .admin-section.open .admin-section-content { display: block; }
+        .admin-section.open .admin-section-toggle-icon { transform: rotate(180deg); }
 
         .form-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 15px; }
         .form-group { flex: 1; min-width: 120px; display: flex; flex-direction: column; gap: 6px; }
@@ -148,7 +185,9 @@
             .btn { width: 100%; text-align: center; margin-top: 5px; }
             .data-table th, .data-table td { padding: 10px 8px; font-size: 12.5px; }
             .day-badge { width: 65px; font-size: 10px; }
+            .search-filter-row { flex-direction: column; align-items: stretch; gap: 10px; }
             .filter-dropdown-wrapper { max-width: 100%; }
+            .search-input-wrapper { width: 100%; }
         }
     </style>
 </head>
@@ -187,12 +226,18 @@
         <div class="panel">
             <div class="panel-title">👗 คลังรวมรหัสชุดและไอเทมแฟชั่นตัวละคร</div>
             
-            <div class="filter-dropdown-wrapper">
-                <button class="dropdown-trigger-btn" id="outfit-dropdown-trigger" onclick="toggleDropdown('outfit-dropdown-menu', 'outfit-dropdown-trigger')">
-                    <span id="selected-outfit-label">✨ เลือกหมวดหมู่: ทั้งหมด</span>
-                    <span class="dropdown-arrow-icon">▼</span>
-                </button>
-                <div class="dropdown-menu-list" id="outfit-dropdown-menu"></div>
+            <div class="search-filter-row">
+                <div class="filter-dropdown-wrapper">
+                    <button class="dropdown-trigger-btn" id="outfit-dropdown-trigger" onclick="toggleDropdown('outfit-dropdown-menu', 'outfit-dropdown-trigger')">
+                        <span id="selected-outfit-label">✨ เลือกหมวดหมู่: ทั้งหมด</span>
+                        <span class="dropdown-arrow-icon">▼</span>
+                    </button>
+                    <div class="dropdown-menu-list" id="outfit-dropdown-menu"></div>
+                </div>
+                
+                <div class="search-input-wrapper">
+                    <input type="text" id="search-outfit-input" placeholder="🔍 ค้นหาด้วยตัวเลข หรือตัวอักษร..." oninput="renderPage2()">
+                </div>
             </div>
 
             <table class="data-table">
@@ -212,12 +257,18 @@
         <div class="panel">
             <div class="panel-title">🎭 คลังข้อมูลท่าทางและแอนิเมชันตัวละคร (Emotes)</div>
             
-            <div class="filter-dropdown-wrapper">
-                <button class="dropdown-trigger-btn" id="emote-dropdown-trigger" onclick="toggleDropdown('emote-dropdown-menu', 'emote-dropdown-trigger')">
-                    <span id="selected-emote-label">✨ ประเภทท่าทาง: ทั้งหมด</span>
-                    <span class="dropdown-arrow-icon">▼</span>
-                </button>
-                <div class="dropdown-menu-list" id="emote-dropdown-menu"></div>
+            <div class="search-filter-row">
+                <div class="filter-dropdown-wrapper">
+                    <button class="dropdown-trigger-btn" id="emote-dropdown-trigger" onclick="toggleDropdown('emote-dropdown-menu', 'emote-dropdown-trigger')">
+                        <span id="selected-emote-label">✨ ประเภทท่าทาง: ทั้งหมด</span>
+                        <span class="dropdown-arrow-icon">▼</span>
+                    </button>
+                    <div class="dropdown-menu-list" id="emote-dropdown-menu"></div>
+                </div>
+
+                <div class="search-input-wrapper">
+                    <input type="text" id="search-emote-input" placeholder="🔍 ค้นหาด้วยตัวเลข หรือตัวอักษร..." oninput="renderPage4()">
+                </div>
             </div>
 
             <table class="data-table">
@@ -240,81 +291,101 @@
             <div class="admin-layout-wrapper">
                 
                 <div class="admin-row-grid">
-                    <div class="admin-section">
-                        <h3>📅 เพิ่มคลาสเรียนประจำวัน</h3>
+                    <div class="admin-section" id="sec-admin-schedule">
+                        <div class="admin-section-header" onclick="toggleAdminSection('sec-admin-schedule')">
+                            <h3>📅 เพิ่มคลาสเรียนประจำวัน</h3>
+                            <span class="admin-section-toggle-icon">▼</span>
+                        </div>
+                        <div class="admin-section-content">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>วันประจำสัปดาห์</label>
+                                    <select id="in-day">
+                                        <option value="จันทร์">วันจันทร์</option>
+                                        <option value="อังคาร">วันอังคาร</option>
+                                        <option value="พุธ">วันพุธ</option>
+                                        <option value="พฤหัสบดี">วันพฤหัสบดี</option>
+                                        <option value="ศุกร์">วันศุกร์</option>
+                                        <option value="เสาร์">วันเสาร์</option>
+                                        <option value="อาทิตย์">วันอาทิตย์</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="flex: 2;">
+                                    <label>ชื่อวิชาเวทมนตร์</label>
+                                    <input type="text" id="in-subject" placeholder="ระบุชื่อวิชาความรู้...">
+                                </div>
+                                <button class="btn btn-add" onclick="addSchedule()">บันทึก</button>
+                            </div>
+                            <table class="data-table" style="font-size: 12.5px;"><tbody id="admin-schedule-body"></tbody></table>
+                        </div>
+                    </div>
+
+                    <div class="admin-section" id="sec-admin-category">
+                        <div class="admin-section-header" onclick="toggleAdminSection('sec-admin-category')">
+                            <h3>🛠️ โครงสร้างหมวดเสื้อผ้า</h3>
+                            <span class="admin-section-toggle-icon">▼</span>
+                        </div>
+                        <div class="admin-section-content">
+                            <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;">
+                                <input type="text" id="in-new-category" placeholder="ระบุชื่อหมวดหมู่เสื้อผ้าใหม่...">
+                                <button class="btn btn-add" onclick="addNewCategory()">➕ เพิ่มหมวดหมู่</button>
+                            </div>
+                            <ul id="admin-category-list" style="list-style: none; display: flex; flex-direction: column; gap: 5px;"></ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-section" id="sec-admin-outfit">
+                    <div class="admin-section-header" onclick="toggleAdminSection('sec-admin-outfit')">
+                        <h3>👗 เพิ่มคอสตูมแฟชั่นเข้าคลังคลังชุด</h3>
+                        <span class="admin-section-toggle-icon">▼</span>
+                    </div>
+                    <div class="admin-section-content">
                         <div class="form-row">
+                            <div class="form-group" style="flex: 0.5; min-width: 70px;">
+                                <label>เลขชุด</label>
+                                <input type="text" id="in-outfit-id" placeholder="01">
+                            </div>
                             <div class="form-group">
-                                <label>วันประจำสัปดาห์</label>
-                                <select id="in-day">
-                                    <option value="จันทร์">วันจันทร์</option>
-                                    <option value="อังคาร">วันอังคาร</option>
-                                    <option value="พุธ">วันพุธ</option>
-                                    <option value="พฤหัสบดี">วันพฤหัสบดี</option>
-                                    <option value="ศุกร์">วันศุกร์</option>
-                                    <option value="เสาร์">วันเสาร์</option>
-                                    <option value="อาทิตย์">วันอาทิตย์</option>
+                                <label>หมวดหมู่คลัง</label>
+                                <select id="in-outfit-cat"></select>
+                            </div>
+                            <div class="form-group" style="flex: 1.5;">
+                                <label>รายละเอียดรูปร่างไอเทม</label>
+                                <input type="text" id="in-outfit-desc" placeholder="เช่น เสื้อคลุมยาวสีดำไหมพรม...">
+                            </div>
+                            <button class="btn btn-add" onclick="addOutfit()">บันทึกชุด</button>
+                        </div>
+                        <table class="data-table" style="font-size: 12.5px;"><tbody id="admin-outfit-body"></tbody></table>
+                    </div>
+                </div>
+
+                <div class="admin-section" id="sec-admin-emote" style="border-color: rgba(41, 182, 246, 0.3);">
+                    <div class="admin-section-header" onclick="toggleAdminSection('sec-admin-emote')">
+                        <h3 style="color: var(--blue-glow);">🎭 เพิ่มข้อมูลสัญลักษณ์ท่าทาง (Emotes)</h3>
+                        <span class="admin-section-toggle-icon">▼</span>
+                    </div>
+                    <div class="admin-section-content">
+                        <div class="form-row">
+                            <div class="form-group" style="flex: 0.5; min-width: 70px;">
+                                <label>เลขท่าทาง</label>
+                                <input type="text" id="in-emote-id" placeholder="เช่น 01">
+                            </div>
+                            <div class="form-group">
+                                <label>เลือกประเภทท่าทาง</label>
+                                <select id="in-emote-type">
+                                    <option value="Emote">อีโมตทั่วไป (Emote)</option>
+                                    <option value="Dance Emote">อีโมตเต้น (Dance Emote)</option>
                                 </select>
                             </div>
-                            <div class="form-group" style="flex: 2;">
-                                <label>ชื่อวิชาเวทมนตร์</label>
-                                <input type="text" id="in-subject" placeholder="ระบุชื่อวิชาความรู้...">
+                            <div class="form-group" style="flex: 1.5;">
+                                <label>ชื่อท่าทาง / คำสั่งเรียกใช้ท่า</label>
+                                <input type="text" id="in-emote-name" placeholder="เช่น /e dance1 , ท่ากอดอก...">
                             </div>
-                            <button class="btn btn-add" onclick="addSchedule()">บันทึก</button>
+                            <button class="btn btn-add" style="background: rgba(41, 182, 246, 0.15); border-color: var(--blue-glow);" onclick="addEmote()">บันทึกท่าทาง</button>
                         </div>
-                        <table class="data-table" style="font-size: 12.5px;"><tbody id="admin-schedule-body"></tbody></table>
+                        <table class="data-table" style="font-size: 12.5px;"><tbody id="admin-emote-body"></tbody></table>
                     </div>
-
-                    <div class="admin-section">
-                        <h3>🛠️ โครงสร้างหมวดเสื้อผ้า</h3>
-                        <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px;">
-                            <input type="text" id="in-new-category" placeholder="ระบุชื่อหมวดหมู่เสื้อผ้าใหม่...">
-                            <button class="btn btn-add" onclick="addNewCategory()">➕ เพิ่มหมวดหมู่</button>
-                        </div>
-                        <ul id="admin-category-list" style="list-style: none; display: flex; flex-direction: column; gap: 5px;"></ul>
-                    </div>
-                </div>
-
-                <div class="admin-section">
-                    <h3>👗 เพิ่มคอสตูมแฟชั่นเข้าคลังคลังชุด</h3>
-                    <div class="form-row">
-                        <div class="form-group" style="flex: 0.5; min-width: 70px;">
-                            <label>เลขชุด</label>
-                            <input type="text" id="in-outfit-id" placeholder="01">
-                        </div>
-                        <div class="form-group">
-                            <label>หมวดหมู่คลัง</label>
-                            <select id="in-outfit-cat"></select>
-                        </div>
-                        <div class="form-group" style="flex: 1.5;">
-                            <label>รายละเอียดรูปร่างไอเทม</label>
-                            <input type="text" id="in-outfit-desc" placeholder="เช่น เสื้อคลุมยาวสีดำไหมพรม...">
-                        </div>
-                        <button class="btn btn-add" onclick="addOutfit()">บันทึกชุด</button>
-                    </div>
-                    <table class="data-table" style="font-size: 12.5px;"><tbody id="admin-outfit-body"></tbody></table>
-                </div>
-
-                <div class="admin-section" style="border-color: rgba(41, 182, 246, 0.3);">
-                    <h3 style="color: var(--blue-glow);">🎭 เพิ่มข้อมูลสัญลักษณ์ท่าทาง (Emotes)</h3>
-                    <div class="form-row">
-                        <div class="form-group" style="flex: 0.5; min-width: 70px;">
-                            <label>เลขท่าทาง</label>
-                            <input type="text" id="in-emote-id" placeholder="เช่น 01">
-                        </div>
-                        <div class="form-group">
-                            <label>เลือกประเภทท่าทาง</label>
-                            <select id="in-emote-type">
-                                <option value="Emote">อีโมตทั่วไป (Emote)</option>
-                                <option value="Dance Emote">อีโมตเต้น (Dance Emote)</option>
-                            </select>
-                        </div>
-                        <div class="form-group" style="flex: 1.5;">
-                            <label>ชื่อท่าทาง / คำสั่งเรียกใช้ท่า</label>
-                            <input type="text" id="in-emote-name" placeholder="เช่น /e dance1 , ท่ากอดอก...">
-                        </div>
-                        <button class="btn btn-add" style="background: rgba(41, 182, 246, 0.15); border-color: var(--blue-glow);" onclick="addEmote()">บันทึกท่าทาง</button>
-                    </div>
-                    <table class="data-table" style="font-size: 12.5px;"><tbody id="admin-emote-body"></tbody></table>
                 </div>
 
             </div>
@@ -397,6 +468,27 @@
         renderPage4();
     }
 
+    // ฟังก์ชันจัดการยืด-หด สำหรับหลังบ้าน (Accordion Toggle)
+    function toggleAdminSection(sectionId) {
+        const section = document.getElementById(sectionId);
+        const isOpen = section.classList.contains('open');
+        
+        // หุบหัวข้ออื่นทั้งหมดก่อนเพื่อให้ดูสะอาดตา
+        document.querySelectorAll('.admin-section').forEach(sec => {
+            sec.classList.remove('open');
+        });
+        
+        // ถ้าตอนแรกปิดอยู่ ให้กางออกตอนคลิก
+        if (!isOpen) {
+            section.classList.add('open');
+        }
+    }
+
+    // ฟังก์ชันช่วยจัดเรียงลำดับตัวเลขแบบธรรมชาติ (Natural Sort)
+    function naturalSort(a, b) {
+        return a.id.localeCompare(b.id, undefined, { numeric: true, sensitivity: 'base' });
+    }
+
     // --- ส่วนการเรนเดอร์เนื้อหาหน้าจอหลัก ---
     function renderPage1() {
         const body = document.getElementById("view-schedule-body");
@@ -418,10 +510,19 @@
         menu.innerHTML = menuHTML;
 
         const body = document.getElementById("view-outfit-body");
-        const filtered = outfitData.filter(item => currentOutfitFilter === "ทั้งหมด" || item.category === currentOutfitFilter);
+        const searchQuery = document.getElementById("search-outfit-input").value.toLowerCase().trim();
+        
+        // เรียงลำดับตัวเลข ID ก่อนทำการฟิลเตอร์กรองข้อมูล
+        const sortedOutfits = [...outfitData].sort(naturalSort);
+
+        const filtered = sortedOutfits.filter(item => {
+            const matchesCategory = currentOutfitFilter === "ทั้งหมด" || item.category === currentOutfitFilter;
+            const matchesSearch = item.id.toLowerCase().includes(searchQuery) || item.desc.toLowerCase().includes(searchQuery);
+            return matchesCategory && matchesSearch;
+        });
         
         if(filtered.length === 0) {
-            body.innerHTML = `<tr><td colspan="3" style="text-align:center; color:var(--text-muted); padding:25px;">ไม่มีข้อมูลไอเทมชุดในหมวดหมู่นี้</td></tr>`;
+            body.innerHTML = `<tr><td colspan="3" style="text-align:center; color:var(--text-muted); padding:25px;">ไม่มีข้อมูลไอเทมชุดที่ตรงกับเงื่อนไขการค้นหา</td></tr>`;
             return;
         }
         body.innerHTML = filtered.map(item => `
@@ -442,10 +543,19 @@
         `;
 
         const body = document.getElementById("view-emote-body");
-        const filtered = emoteData.filter(item => currentEmoteFilter === "ทั้งหมด" || item.type === currentEmoteFilter);
+        const searchQuery = document.getElementById("search-emote-input").value.toLowerCase().trim();
+
+        // เรียงลำดับตัวเลข ID ก่อนทำการฟิลเตอร์กรองข้อมูล
+        const sortedEmotes = [...emoteData].sort(naturalSort);
+
+        const filtered = sortedEmotes.filter(item => {
+            const matchesType = currentEmoteFilter === "ทั้งหมด" || item.type === currentEmoteFilter;
+            const matchesSearch = item.id.toLowerCase().includes(searchQuery) || item.name.toLowerCase().includes(searchQuery);
+            return matchesType && matchesSearch;
+        });
         
         if(filtered.length === 0) {
-            body.innerHTML = `<tr><td colspan="3" style="text-align:center; color:var(--text-muted); padding:25px;">ไม่มีข้อมูลท่าทางในหมวดหมู่นี้</td></tr>`;
+            body.innerHTML = `<tr><td colspan="3" style="text-align:center; color:var(--text-muted); padding:25px;">ไม่มีข้อมูลท่าทางที่ตรงกับเงื่อนไขการค้นหา</td></tr>`;
             return;
         }
         body.innerHTML = filtered.map(item => `
@@ -598,7 +708,11 @@
         }
     }
 
-    window.onload = renderAll;
+    window.onload = function() {
+        renderAll();
+        // ตั้งค่าให้กาง Accordion หลังบ้านอันแรกออกเป็นดีฟอลต์ (เพื่อความสวยงามและรู้ว่าจิ้มเปิด-ปิดได้)
+        toggleAdminSection('sec-admin-schedule');
+    };
 </script>
 
 </body>
